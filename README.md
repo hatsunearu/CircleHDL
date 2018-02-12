@@ -41,12 +41,6 @@ This language will probably not be an exception to the above, and I don't expect
 this project to go anywhere close to major adoption. But it's cool, and I think
 it's cool, I hope you do too, and I hope you like what I make. 
 
-## Name
-
-I can't come up with a good name, so I called it meme because this analog HDLs
-are a meme. Hopefully I'll come up with a better name soon and rename this repo
-before people start making links to hatsunearu/meme.
-
 ## Long Term Goals
 
 * Transpile to SPICE netlists
