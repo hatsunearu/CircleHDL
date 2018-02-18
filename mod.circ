@@ -1,0 +1,25 @@
+def mod lm741 () { 
+ 
+    attr pins(8) {
+        1: ON1
+        2: -IN
+        3: +IN
+        4: V-
+        5: ON2
+        6: Output
+        7: V+
+        8: NC
+    }
+    
+
+}
+
+def top testckt() {
+
+    !mod my_opamp = lm741(foo, bar)
+    !node Vout
+    !node Vin
+    !node testnode
+    
+    my_opamp:Output -- |my_opamp:-IN -- |testnode -- Vout
+}
