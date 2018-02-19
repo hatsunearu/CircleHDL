@@ -1,4 +1,4 @@
-# meme
+# CircleHDL
 An Analog Hardware Definition Language with a focus in schematic capture
 
 ## Why?
