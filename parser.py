@@ -22,7 +22,7 @@ class CircleTransformer(Transformer):
         mod_args = items[1]
         mod_attrs = items[2]
         
-        print(f"mod_name: {mod_name}\nmod_args: {mod_args}\nmod_attrs: {mod_attrs}")
+        #print(f"mod_name: {mod_name}\nmod_args: {mod_args}\nmod_attrs: {mod_attrs}")
         
         mf = ModuleFactory(mod_name, mod_args, mod_attrs)
         
@@ -67,26 +67,91 @@ class CircleTransformer(Transformer):
         self.nm.make(nodename)
         
     def double_port(self, items):
+        
+        
+        print(f"dp: {items}")
+        
         # items can be a tuple of length 1, 2
         # 1: a single port to be connected up to the parent node
         # 2: left-right port pair from module
+        # just pass forwards for these cases
+        
+        
+        if len(items) == 1:
+            return items[0]
+        
+        else:
+            l, r = items
+            
+            # cases
+            # both double -> connect middle node
+            # both singular -> combine node and return singular
+            # L singular, R double -> combine nodeL of R and return
+            # R double, L singular -> combine nodeR of L and return
+            
+            if len(l) == 2 and len(r) == 2:
+                l[1].combine_node(r[0])
+                return (l[0], r[1])
+            elif len(l) == 1 and len(r) == 1:
+                l = l[0]
+                r = r[0]
+                if type(l) == ModPin and type(r) == Node:
+                    r.connect_pin(l.module, l.pinnum)
+                    return r
+                elif type(l) == Node and type(r) == ModPin:
+                    l.connect_pin(r.module, r.pinnum)
+                    return l
+                elif type(l) == Node and type(r) == Node:
+                    l.combine_node(r)
+                    return l
+                elif type(l) == ModPin and type(r) == ModPin:
+                    n = self.nm.make()
+                    n.connect_pin(l.module, l.pinnum)
+                    n.connect_pin(r.module, r.pinnum)
+                    return n
+                else:
+                    print(f"{type(l)} {type(r)}")
+                    raise Exception("This shouldn't happen.")
+                
+            elif len(l) == 1 and len(r) == 2:
+                if type(l) == ModPin:
+                    r[0].connect_pin(l.module, l.pinnum)
+                else:
+                    r[0].combine_node(l)
+                return r
+            elif len(l) == 2 and len(r) == 1:
+                if type(r) == ModPin:
+                    l[1].connect_pin(r.module, r.pinnum)
+                else:
+                    l[1].combine_node(r)
+                return l
+            else:
+                raise Exception("This shouldn't happen.")
+                    
+                
+            
+            
+            
         
         # additionally, it can be a list of length-2 tuples
         # which are the two left-right port pair from the child modules
-        pass
+        
 
     def singular_port(self, items):
+        print((items[0],))
         return (items[0],)
     
     def node_literal(self, items):
         lit = items[0].value
         # check existance of node
         node = self.nm.get_node(lit)
+        return node
 
     def mod_literal(self, items):
         lit = items[0].value
         # check existance of mod
         mod = self.nm.get_mod(lit)
+        return mod
     
     def functional_args(self, items):
         return [i.value for i in items]
@@ -100,10 +165,8 @@ class CircleTransformer(Transformer):
         
         node_on_pin = mod.get_node(pinnum)
         
-        if node_on_pin != None:
-            node = self.nm.make()
-            node.connect_pin(mod, pinnum)
-            node_on_pin = node
+        if node_on_pin == None:
+            return ModPin(mod, pinnum)
           
         return node_on_pin
     
@@ -127,7 +190,7 @@ xfrm = CircleTransformer(nm, mm).transform(res)
 
 modulefactories = [mf for mf in xfrm.children if type(mf) == ModuleFactory]
 
-print(modulefactories)
+#print(modulefactories)
 
 m = modulefactories[0].make()
 n1 = Node('n1')
@@ -139,8 +202,12 @@ n2.connect_pin(m, 3)
 n3.connect_pin(m, 2)
 n1.connect_pin(m, 3)
 
-print(f"4:\nn1: {n1.pins} n2: {n2.pins} n3: {n3.pins}")
-print(f"m pn: {m._pin_nodes}")
+
+pprint(nm.nodes)
+
+pprint(mm.mods)
+#print(f"4:\nn1: {n1.pins} n2: {n2.pins} n3: {n3.pins}")
+#print(f"m pn: {m._pin_nodes}")
 
 
 
